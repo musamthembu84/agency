@@ -11,7 +11,6 @@ import java.util.Optional;
 
 @Service
 @Slf4j
-
 public class ReservationServiceImpl implements ReservationService {
 
     private ReservationRepository reservationRepository;
@@ -23,17 +22,16 @@ public class ReservationServiceImpl implements ReservationService {
 
     @Override
     public boolean createReservation(Reservation request) {
-
-        final Reservation bookingReservation = reservationRepository.findReservationByCustomerNameAndReservationLocation(request.getCustomerName(), request.getReservationLocation());
-        if (bookingReservation != null) {
-            log.error(String.format("Did not create reservation for [%s] as reservation is already created", request.getCustomerName()));
-            return false;
-        }
-        request.setReservationDate(new Date());
-        reservationRepository.save(request);
-        log.info(String.format("Successfully created reservation for [%s]", request.getCustomerName()));
-        return true;
-
+            final Reservation bookingReservation = reservationRepository.findReservationByCustomerNameAndReservationLocationAndHotelRoomAndLuggageSize(
+                    request.getCustomerName(), request.getReservationLocation(), request.getHotelRoom(), request.getLuggageSize());
+            if (bookingReservation != null) {
+                log.error(String.format("Did not create reservation for [%s] as reservation is already created", request.getCustomerName()));
+                return false;
+            }
+            request.setReservationDate(new Date());
+            reservationRepository.save(request);
+            log.info(String.format("Successfully created reservation for [%s]", request.getCustomerName()));
+            return true;
     }
 
     @Override
@@ -48,38 +46,37 @@ public class ReservationServiceImpl implements ReservationService {
 
     @Override
     public boolean updateReservation(long id, Reservation request) {
-        final Optional<Reservation> existingReservation = reservationRepository.findReservationById(id);
+            final Optional<Reservation> existingReservation = reservationRepository.findReservationById(id);
 
-        if (existingReservation.isPresent()) {
-            Reservation updatedReservation = getReservation(request, existingReservation);
-            reservationRepository.save(updatedReservation);
-            log.info(String.format("Update reservation for user [%s] done successfully", request.getCustomerName()));
-            return true;
-        }
-        return false;
+            if (existingReservation.isPresent()) {
+                Reservation updatedReservation = getReservation(request, existingReservation);
+                reservationRepository.save(updatedReservation);
+                log.info(String.format("Updated reservation for user [%s]", request.getCustomerName()));
+                return true;
+            }
+            return false;
     }
 
     @Override
     public boolean deleteReservation(long id) {
-        final Optional<Reservation> deleteExistingReservation = reservationRepository.findReservationById(id);
 
-        if (deleteExistingReservation.isPresent()) {
-            reservationRepository.deleteById(id);
-            return true;
-        }
-
-        return false;
+            final Optional<Reservation> deleteExistingReservation = reservationRepository.findReservationById(id);
+            if (deleteExistingReservation.isPresent()) {
+                reservationRepository.deleteById(id);
+                return true;
+            }
+            return false;
     }
 
     public boolean deleteAllReservations() {
-        final List<Reservation> deleteExistingReservation = reservationRepository.findAll();
 
-        if (!deleteExistingReservation.isEmpty()) {
-            reservationRepository.deleteAll();
-            log.info("Deleted all reservations");
-            return true;
-        }
-        return false;
+            final List<Reservation> deleteExistingReservation = reservationRepository.findAll();
+            if (!deleteExistingReservation.isEmpty()) {
+                reservationRepository.deleteAll();
+                log.info(String.format("Deleted total of [%d] all reservations",deleteExistingReservation.size()));
+                return true;
+            }
+            return false;
     }
 
     private static Reservation getReservation(Reservation request, Optional<Reservation> existingReservation) {

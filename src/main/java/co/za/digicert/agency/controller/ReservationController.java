@@ -1,6 +1,5 @@
 package co.za.digicert.agency.controller;
 
-import co.za.digicert.agency.dto.ReservationRequestDTO;
 import co.za.digicert.agency.dto.ReservationResponseDTO;
 import co.za.digicert.agency.entity.Reservation;
 import co.za.digicert.agency.service.ReservationServiceImpl;
@@ -10,7 +9,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -20,6 +18,7 @@ import static co.za.digicert.agency.util.Responses.createResponse;
 @RestController
 @RequestMapping("/booking")
 @Slf4j
+@CrossOrigin
 public class ReservationController {
 
     private final ReservationServiceImpl bookingService;
@@ -51,18 +50,18 @@ public class ReservationController {
     }
 
     @GetMapping("/reservations")
-    public ResponseEntity<ReservationResponseDTO> getAllReservations() {
+    public ResponseEntity<List<Reservation>> getAllReservations() {
         HttpHeaders headers = getHttpHeaders();
         try {
             List<Reservation> allReservationsOfCustomer = bookingService.findAllReservations();
             if (!allReservationsOfCustomer.isEmpty()) {
-                return new ResponseEntity<>(createResponse(String.valueOf(HttpStatus.OK.value()),RESERVATION_FOUND,allReservationsOfCustomer), headers, HttpStatus.OK);
+                return new ResponseEntity<>(allReservationsOfCustomer, headers, HttpStatus.OK);
             } else {
-                return new ResponseEntity<>(createResponse(String.valueOf(HttpStatus.CONFLICT.value()),RESERVATION_FOUND,null),getHttpHeaders(),HttpStatus.NO_CONTENT);
+                return new ResponseEntity<>(getHttpHeaders(),HttpStatus.NO_CONTENT);
             }
 
         } catch (Exception ex) {
-            return new ResponseEntity<>(createResponse(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()),ex.getMessage(),null),headers, HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(headers, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
